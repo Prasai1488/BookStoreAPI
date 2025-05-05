@@ -1,5 +1,6 @@
 ﻿using BookStore.API.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace BookStore.API.DTOs.Books
 {
@@ -16,11 +17,13 @@ namespace BookStore.API.DTOs.Books
         public string Author { get; set; }
 
         [Required]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public BookGenre Genre { get; set; }
 
         public string Language { get; set; }
 
         [Required]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public BookFormat Format { get; set; }
 
         public string Publisher { get; set; }
