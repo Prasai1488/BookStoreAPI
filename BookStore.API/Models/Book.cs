@@ -8,6 +8,9 @@ namespace BookStore.API.Models
         [Key]
         public int BookId { get; set; }  // Primary Key
 
+        public string? ImageUrl { get; set; }  // Optional book cover image
+
+
         [Required]
         public string Title { get; set; }
 
