@@ -116,7 +116,7 @@ namespace BookStore.API.Controllers.AdminController
 
         // 🔹 PUT: Update Book
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateBookDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateBookDto dto)
         {
             var book = await _context.Books.FindAsync(id);
             if (book == null) return NotFound();
@@ -130,14 +130,14 @@ namespace BookStore.API.Controllers.AdminController
             book.Language = dto.Language ?? book.Language;
             book.Format = dto.Format ?? book.Format;
             book.Publisher = dto.Publisher ?? book.Publisher;
-            book.PublicationDate = dto.PublicationDate ?? book.PublicationDate;
+            book.PublicationDate = dto.PublicationDate?.ToUniversalTime() ?? book.PublicationDate;
             book.Price = dto.Price ?? book.Price;
             book.StockQuantity = dto.StockQuantity ?? book.StockQuantity;
             book.IsExclusive = dto.IsExclusive ?? book.IsExclusive;
             book.OnSale = dto.OnSale ?? book.OnSale;
             book.SalePrice = dto.SalePrice ?? book.SalePrice;
-            book.SaleStart = dto.SaleStart ?? book.SaleStart;
-            book.SaleEnd = dto.SaleEnd ?? book.SaleEnd;
+            book.SaleStart = dto.SaleStart?.ToUniversalTime() ?? book.SaleStart;
+            book.SaleEnd = dto.SaleEnd?.ToUniversalTime() ?? book.SaleEnd;
             book.ImageUrl = dto.ImageUrl ?? book.ImageUrl;
 
             await _context.SaveChangesAsync();

@@ -11,6 +11,8 @@ namespace BookStore.API.Data
         public DbSet<Book> Books { get; set; }
         public DbSet<User> Users { get; set; }
 
+        public DbSet<Announcement> Announcements { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Store enum as string for readability
