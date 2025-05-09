@@ -55,6 +55,12 @@ namespace BookStore.API.Controllers
                 return Unauthorized("Invalid credentials.");
 
             var token = GenerateJwtToken(user);
+
+            // 🧠 Add count of completed orders
+            var completedOrders = await _context.Orders
+                .Where(o => o.UserId == user.UserId && o.Status == OrderStatus.Completed)
+                .CountAsync();
+
             return Ok(new
             {
                 message = "Login successful.",
@@ -64,11 +70,12 @@ namespace BookStore.API.Controllers
                     user.UserId,
                     user.Name,
                     user.Email,
-                    user.Role
+                    user.Role,
+                    completedOrders // ✅ Include this in response
                 }
             });
-
         }
+
 
         [HttpPost("create-staff")]
         [Authorize(Roles = "Admin")]
