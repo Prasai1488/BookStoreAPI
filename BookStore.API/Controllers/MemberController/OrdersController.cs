@@ -41,13 +41,13 @@ namespace BookStore.API.Controllers.MemberController
             var bookTitles = cartItems.Select(c => c.Book.Title).ToList();
 
             if (!cartItems.Any())
-                return BadRequest("Your cart is empty.");
+                return BadRequest(new { message = "Your cart is empty." });
 
             // Validate stock
             foreach (var item in cartItems)
             {
                 if (item.Quantity > item.Book.StockQuantity)
-                    return BadRequest($"Not enough stock for {item.Book.Title}.");
+                    return BadRequest(new { message = $"Not enough stock for {item.Book.Title}." });
             }
 
             // Calculate total
@@ -140,15 +140,29 @@ namespace BookStore.API.Controllers.MemberController
 
         // 🔹 GET Orders
         [HttpGet]
-        public async Task<IActionResult> GetOrders()
+        public async Task<IActionResult> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? status = null)
         {
             var userId = GetUserId();
 
-            var orders = await _context.Orders
+            var query = _context.Orders
                 .Where(o => o.UserId == userId)
                 .Include(o => o.Items)
                 .ThenInclude(i => i.Book)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(status) &&
+                Enum.TryParse<OrderStatus>(status, true, out var parsedStatus))
+            {
+                query = query.Where(o => o.Status == parsedStatus);
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var orders = await query
                 .OrderByDescending(o => o.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             var result = orders.Select(order => new
@@ -167,8 +181,16 @@ namespace BookStore.API.Controllers.MemberController
                 })
             });
 
-            return Ok(result);
+            return Ok(new
+            {
+                currentPage = page,
+                pageSize,
+                totalPages,
+                totalCount,
+                orders = result
+            });
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> CancelOrder(int id)
@@ -181,10 +203,10 @@ namespace BookStore.API.Controllers.MemberController
                 .FirstOrDefaultAsync(o => o.OrderId == id && o.UserId == userId);
 
             if (order == null)
-                return NotFound("Order not found.");
+                return NotFound(new { message = "Order not found." });
 
             if (order.Status != OrderStatus.Pending)
-                return BadRequest("Only pending orders can be cancelled.");
+                return BadRequest(new { message = "Only pending orders can be cancelled." });
 
             // Restock books
             foreach (var item in order.Items)
@@ -195,7 +217,7 @@ namespace BookStore.API.Controllers.MemberController
             order.Status = OrderStatus.Cancelled;
             await _context.SaveChangesAsync();
 
-            return Ok("Order cancelled successfully.");
+            return Ok(new { message = "Order cancelled successfully." });
         }
 
 

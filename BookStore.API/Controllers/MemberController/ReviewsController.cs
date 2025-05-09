@@ -35,13 +35,13 @@ namespace BookStore.API.Controllers.MemberController
                 .AnyAsync(i => i.BookId == dto.BookId);
 
             if (!hasPurchased)
-                return BadRequest("You can only review books you’ve purchased.");
+                return BadRequest(new { message = "You can only review books you’ve purchased." });
 
             var alreadyReviewed = await _context.BookReviews
                 .AnyAsync(r => r.UserId == userId && r.BookId == dto.BookId);
 
             if (alreadyReviewed)
-                return BadRequest("You’ve already reviewed this book.");
+                return BadRequest(new { message = "You’ve already reviewed this book." });
 
             var review = new BookReview
             {
@@ -54,7 +54,7 @@ namespace BookStore.API.Controllers.MemberController
             _context.BookReviews.Add(review);
             await _context.SaveChangesAsync();
 
-            return Ok("Review submitted successfully.");
+            return Ok(new { message = "Review submitted successfully." });
         }
 
 

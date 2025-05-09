@@ -30,7 +30,7 @@ namespace BookStore.API.Controllers.MemberController
 
             var book = await _context.Books.FindAsync(bookId);
             if (book == null)
-                return NotFound("Book not found.");
+                return NotFound(new { message = "Book not found." });
 
             var existing = await _context.CartItems
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.BookId == bookId);
@@ -39,16 +39,16 @@ namespace BookStore.API.Controllers.MemberController
             {
                 if (existing.Quantity + 1 > book.StockQuantity)
                 {
-                    return BadRequest($"Cannot add more. Only {book.StockQuantity} in stock.");
+                    return BadRequest(new { message = $"Cannot add more. Only {book.StockQuantity} in stock." });
                 }
 
                 existing.Quantity += 1;
                 await _context.SaveChangesAsync();
-                return Ok("Book already in cart. Quantity updated.");
+                return Ok(new { message = "Book already in cart. Quantity updated." });
             }
 
             if (book.StockQuantity < 1)
-                return BadRequest("Book is currently out of stock.");
+                return BadRequest(new { message = "Book is currently out of stock." });
 
             _context.CartItems.Add(new CartItem
             {
@@ -58,7 +58,7 @@ namespace BookStore.API.Controllers.MemberController
             });
 
             await _context.SaveChangesAsync();
-            return Ok("Book added to cart.");
+            return Ok(new {message =  "Book added to cart."});
         }
 
 
@@ -95,12 +95,13 @@ namespace BookStore.API.Controllers.MemberController
             var item = await _context.CartItems
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.BookId == bookId);
 
-            if (item == null) return NotFound("Book not in cart.");
+            if (item == null) return NotFound(new { message = "Book not in cart." });
 
             _context.CartItems.Remove(item);
             await _context.SaveChangesAsync();
 
-            return Ok("Book removed from cart.");
+            return Ok(new { message = "Book removed from cart." });
+
         }
 
         // 🔽 Decrease quantity by one
@@ -112,19 +113,20 @@ namespace BookStore.API.Controllers.MemberController
             var item = await _context.CartItems
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.BookId == bookId);
 
-            if (item == null) return NotFound("Item not in cart.");
+            if (item == null) return NotFound(new { message = "Item not in cart." });
 
             if (item.Quantity <= 1)
             {
                 _context.CartItems.Remove(item);
                 await _context.SaveChangesAsync();
-                return Ok("Item removed from cart.");
+                return Ok(new { message = "Item removed from cart." });
             }
 
             item.Quantity -= 1;
             await _context.SaveChangesAsync();
 
-            return Ok("Quantity decreased by 1.");
+            return Ok(new { message = "Quantity decreased by 1." });
+
         }
 
         // Delete all items in cart
@@ -138,12 +140,12 @@ namespace BookStore.API.Controllers.MemberController
                 .ToListAsync();
 
             if (!cartItems.Any())
-                return BadRequest("Your cart is already empty.");
+                return BadRequest(new { message = "Your cart is already empty." });
 
             _context.CartItems.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
 
-            return Ok("All items removed from your cart.");
+            return Ok(new { message = "All items removed from your cart." });
         }
 
     }
