@@ -58,8 +58,16 @@ namespace BookStore.API.Controllers
             return Ok(new
             {
                 message = "Login successful.",
-                token
+                token,
+                user = new
+                {
+                    user.UserId,
+                    user.Name,
+                    user.Email,
+                    user.Role
+                }
             });
+
         }
 
         [HttpPost("create-staff")]
