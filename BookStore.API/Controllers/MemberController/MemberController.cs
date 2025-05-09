@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using BookStore.API.DTOs.Books;
 
 namespace BookStore.API.Controllers.MemberController
 {
@@ -44,6 +45,7 @@ namespace BookStore.API.Controllers.MemberController
         }
 
         // 📋 View all bookmarks
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -51,16 +53,27 @@ namespace BookStore.API.Controllers.MemberController
 
             var bookmarks = await _context.BookBookmarks
                 .Where(b => b.UserId == userId)
-                .Include(b => b.Book)
-                .Select(b => new
+                
+                .Select(b => new BookResponseDto
                 {
-                    b.BookId,
-                    b.Book.Title,
-                    b.Book.ImageUrl,
-                    b.Book.Author,
-                    b.Book.OnSale,
-                    b.Book.Price,
-                    b.Book.SalePrice
+                    BookId = b.Book.BookId,
+                    Title = b.Book.Title,
+                    ISBN = b.Book.ISBN,
+                    Description = b.Book.Description,
+                    Author = b.Book.Author,
+                    Genre = b.Book.Genre,
+                    Language = b.Book.Language,
+                    Format = b.Book.Format,
+                    Publisher = b.Book.Publisher,
+                    PublicationDate = b.Book.PublicationDate,
+                    Price = b.Book.Price,
+                    StockQuantity = b.Book.StockQuantity,
+                    IsExclusive = b.Book.IsExclusive,
+                    OnSale = b.Book.OnSale,
+                    SalePrice = b.Book.SalePrice,
+                    SaleStart = b.Book.SaleStart,
+                    SaleEnd = b.Book.SaleEnd,
+                    ImageUrl = b.Book.ImageUrl
                 })
                 .ToListAsync();
 
