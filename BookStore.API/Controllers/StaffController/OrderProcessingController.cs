@@ -22,7 +22,7 @@ namespace BookStore.API.Controllers.StaffController
         public async Task<IActionResult> ProcessOrderByClaimCode([FromQuery] string claimCode)
         {
             if (string.IsNullOrWhiteSpace(claimCode))
-                return BadRequest("Claim code is required.");
+                return BadRequest(new { message = "Claim code is required." });
 
             var order = await _context.Orders
                 .Include(o => o.Items)
@@ -30,10 +30,10 @@ namespace BookStore.API.Controllers.StaffController
                 .FirstOrDefaultAsync(o => o.ClaimCode == claimCode);
 
             if (order == null)
-                return NotFound("No order found for this claim code.");
+                return NotFound(new { message = "No order found for this claim code." });
 
             if (order.Status != OrderStatus.Pending)
-                return BadRequest($"Order is already marked as {order.Status}.");
+                return BadRequest(new { message = $"Order is already marked as {order.Status}." });
 
             order.Status = OrderStatus.Completed;
 
