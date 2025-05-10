@@ -24,6 +24,7 @@ namespace BookStore.API.Controllers.PublicController
         [AllowAnonymous]
         public async Task<IActionResult> GetBookById(int id)
         {
+            var now = DateTime.UtcNow;
             var book = await _context.Books
                 .Where(b => b.BookId == id)
                 .Select(b => new BookResponseDto
@@ -42,10 +43,18 @@ namespace BookStore.API.Controllers.PublicController
                     StockQuantity = b.StockQuantity,
                     IsExclusive = b.IsExclusive,
                     OnSale = b.OnSale,
-                    SalePrice = b.SalePrice,
+                    //SalePrice = b.SalePrice,
                     SaleStart = b.SaleStart,
                     SaleEnd = b.SaleEnd,
-                    ImageUrl = b.ImageUrl
+                    ImageUrl = b.ImageUrl,
+
+                    // ✅ Conditional SalePrice
+                    SalePrice = b.OnSale == true
+    && (!b.SaleStart.HasValue || b.SaleStart <= now)
+    && (!b.SaleEnd.HasValue || b.SaleEnd >= now)
+    ? b.SalePrice
+    : null
+
                 })
                 .FirstOrDefaultAsync();
 
@@ -90,12 +99,18 @@ namespace BookStore.API.Controllers.PublicController
             {
                 query = query.Where(b => b.Format == parsedFormat);
             }
+            var now = DateTime.UtcNow;
 
-            // 🧪 Filter by onSale
-            if (onSale.HasValue)
+            // 🧪 Filter by active sale (flag + valid dates)
+            if (onSale == true)
             {
-                query = query.Where(b => b.OnSale == onSale.Value);
+                query = query.Where(b =>
+                    b.OnSale &&
+                    (!b.SaleStart.HasValue || b.SaleStart <= now) &&
+                    (!b.SaleEnd.HasValue || b.SaleEnd >= now)
+                );
             }
+
 
             // 🔽 Sorting
             query = (sortBy?.ToLower(), order?.ToLower()) switch
@@ -110,6 +125,8 @@ namespace BookStore.API.Controllers.PublicController
             // 📊 Pagination
             var totalCount = await query.CountAsync();
             var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            //var now = DateTime.UtcNow;
 
             var books = await query
                 .Skip((page - 1) * pageSize)
@@ -130,10 +147,19 @@ namespace BookStore.API.Controllers.PublicController
                     StockQuantity = book.StockQuantity,
                     IsExclusive = book.IsExclusive,
                     OnSale = book.OnSale,
-                    SalePrice = book.SalePrice,
+                    //SalePrice = book.SalePrice,
                     SaleStart = book.SaleStart,
                     SaleEnd = book.SaleEnd,
-                    ImageUrl = book.ImageUrl
+                    ImageUrl = book.ImageUrl,
+
+                    // ✅ Conditional SalePrice
+                    SalePrice = book.OnSale == true
+    && (!book.SaleStart.HasValue || book.SaleStart <= now)
+    && (!book.SaleEnd.HasValue || book.SaleEnd >= now)
+    ? book.SalePrice
+    : null
+
+
                 })
                 .ToListAsync();
 
