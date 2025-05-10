@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
+using BookStore.API.Hubs;
+
 
 namespace BookStore.API.Controllers.MemberController
 {
@@ -16,11 +19,13 @@ namespace BookStore.API.Controllers.MemberController
     {
         private readonly AppDbContext _context;
         private readonly EmailSender _emailSender;
+        private readonly IHubContext<BroadcastHub> _hub;
 
-        public OrdersController(AppDbContext context, EmailSender emailSender)
+        public OrdersController(AppDbContext context, EmailSender emailSender, IHubContext<BroadcastHub> hub)
         {
             _context = context;
             _emailSender = emailSender;
+            _hub = hub;
         }
 
         private int GetUserId() =>
@@ -123,6 +128,11 @@ namespace BookStore.API.Controllers.MemberController
     total: finalTotal,
     bookTitles: bookTitles
 );
+          
+            var broadcastMessage = $"📚 New order placed with: {string.Join(", ", bookTitles)}";
+
+            await _hub.Clients.All.SendAsync("OrderPlaced", broadcastMessage);
+
 
             return Ok(new
             {

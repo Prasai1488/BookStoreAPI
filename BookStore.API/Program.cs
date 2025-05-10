@@ -7,6 +7,7 @@ using System.Text;
 using BookStore.API.Data.Seed;
 using BookStore.API.Services;
 using System.Text.Json.Serialization;
+using BookStore.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSignalR();
+
 
 
 var app = builder.Build();
@@ -87,6 +90,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<BroadcastHub>("/broadcastHub");
+
 
 using (var scope = app.Services.CreateScope())
 {
