@@ -141,7 +141,7 @@ namespace BookStore.API.Controllers.AdminController
             book.ImageUrl = dto.ImageUrl ?? book.ImageUrl;
 
             await _context.SaveChangesAsync();
-            return Ok("Book updated successfully.");
+            return Ok(new { message = "Book updated successfully." });
         }
 
         // 🔹 DELETE Book
@@ -153,7 +153,7 @@ namespace BookStore.API.Controllers.AdminController
 
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
-            return Ok("Book deleted successfully.");
+            return Ok(new { message = "Book deleted successfully." });
         }
     }
 }

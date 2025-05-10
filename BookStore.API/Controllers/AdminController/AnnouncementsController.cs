@@ -2,6 +2,7 @@
 using BookStore.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.API.Controllers.AdminController;
 
@@ -16,6 +17,16 @@ public class AnnouncementsController : ControllerBase
     public AnnouncementsController(AppDbContext context)
     {
         _context = context;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var all = await _context.Announcements
+            .OrderByDescending(a => a.StartTime)
+            .ToListAsync();
+
+        return Ok(all);
     }
 
     [HttpPost]
@@ -41,7 +52,7 @@ public class AnnouncementsController : ControllerBase
         existing.EndTime = dto.EndTime.ToUniversalTime();
 
         await _context.SaveChangesAsync();
-        return Ok("Updated");
+        return Ok(new { message = "Updated" });
     }
 
     [HttpDelete("{id}")]
@@ -52,6 +63,6 @@ public class AnnouncementsController : ControllerBase
 
         _context.Announcements.Remove(announcement);
         await _context.SaveChangesAsync();
-        return Ok("Deleted");
+        return Ok(new { message = "Deleted" });
     }
 }
