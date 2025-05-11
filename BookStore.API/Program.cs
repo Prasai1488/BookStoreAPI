@@ -69,6 +69,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSignalR();
+builder.Logging.AddConsole();
+
 
 
 

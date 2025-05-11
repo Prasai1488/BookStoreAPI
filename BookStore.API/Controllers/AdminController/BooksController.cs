@@ -5,6 +5,7 @@ using BookStore.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace BookStore.API.Controllers.AdminController
 {
@@ -20,11 +21,18 @@ namespace BookStore.API.Controllers.AdminController
             _context = context;
         }
 
-        // 🔹 GET All Books (Admin)
+        // 🔹 GET Paginated Books (Admin)
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
         {
-            var books = await _context.Books
+            var query = _context.Books.AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var books = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(book => new BookResponseDto
                 {
                     BookId = book.BookId,
@@ -48,7 +56,14 @@ namespace BookStore.API.Controllers.AdminController
                 })
                 .ToListAsync();
 
-            return Ok(books);
+            return Ok(new
+            {
+                currentPage = page,
+                pageSize,
+                totalPages,
+                totalCount,
+                books
+            });
         }
 
         // 🔹 GET Book by ID
@@ -115,9 +130,20 @@ namespace BookStore.API.Controllers.AdminController
         }
 
         // 🔹 PUT: Update Book
+       
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateBookDto dto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new { message = "Validation failed", errors });
+            }
+
             var book = await _context.Books.FindAsync(id);
             if (book == null) return NotFound();
 
@@ -143,6 +169,7 @@ namespace BookStore.API.Controllers.AdminController
             await _context.SaveChangesAsync();
             return Ok(new { message = "Book updated successfully." });
         }
+
 
         // 🔹 DELETE Book
         [HttpDelete("{id}")]
