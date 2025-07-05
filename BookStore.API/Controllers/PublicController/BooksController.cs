@@ -173,6 +173,69 @@ namespace BookStore.API.Controllers.PublicController
             });
         }
 
+        [HttpGet("bestsellers")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetBestSellers(int page = 1, int pageSize = 10)
+        {
+            // Get total count of distinct best-selling books
+            var totalCount = await _context.OrderItems
+                .Where(oi => oi.Order.Status == OrderStatus.Completed)
+                .Select(oi => oi.BookId)
+                .Distinct()
+                .CountAsync();
+
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var bestSellers = await _context.OrderItems
+                .Include(oi => oi.Order)
+                .Where(oi => oi.Order.Status == OrderStatus.Completed)
+                .GroupBy(oi => oi.BookId)
+                .Where(g => g.Sum(x => x.Quantity) >= 5)
+                .Select(g => new
+                {
+                    BookId = g.Key,
+                    TotalSold = g.Sum(x => x.Quantity)
+                })
+                .OrderByDescending(g => g.TotalSold)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Join(_context.Books,
+                    sale => sale.BookId,
+                    book => book.BookId,
+                    (sale, book) => new BookResponseDto
+                    {
+                        BookId = book.BookId,
+                        Title = book.Title,
+                        ISBN = book.ISBN,
+                        Description = book.Description,
+                        Author = book.Author,
+                        Genre = book.Genre,
+                        Language = book.Language,
+                        Format = book.Format,
+                        Publisher = book.Publisher,
+                        PublicationDate = book.PublicationDate,
+                        Price = book.Price,
+                        StockQuantity = book.StockQuantity,
+                        IsExclusive = book.IsExclusive,
+                        OnSale = book.OnSale,
+                        SalePrice = book.SalePrice,
+                        SaleStart = book.SaleStart,
+                        SaleEnd = book.SaleEnd,
+                        ImageUrl = book.ImageUrl
+                    }
+                )
+                .ToListAsync();
+
+            return Ok(new
+            {
+                currentPage = page,
+                pageSize,
+                totalPages,
+                totalCount,
+                bestSellers
+            });
+        }
+
 
     }
 }

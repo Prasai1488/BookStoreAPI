@@ -35,6 +35,8 @@ namespace BookStore.API.Models
         public decimal PriceAtPurchase { get; set; }
 
         public Book Book { get; set; }
+        public Order Order { get; set; }  // 🔥 Missing navigation property
+
     }
 
 }

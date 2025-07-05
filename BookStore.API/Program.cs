@@ -17,7 +17,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings"));
 
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+//var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+var jwtSettings = new JwtSettings
+{
+    Key = builder.Configuration["JwtSettings:Key"],
+    Issuer = builder.Configuration["JwtSettings:Issuer"],
+    Audience = builder.Configuration["JwtSettings:Audience"]
+};
+
 var key = Encoding.UTF8.GetBytes(jwtSettings.Key);
 
 builder.Services.AddAuthentication(options =>
