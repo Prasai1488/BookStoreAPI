@@ -68,7 +68,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "https://book-store-ui-rust.vercel.app/")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // Needed for cookies/auth headers
